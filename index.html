@@ -6,7 +6,6 @@
 <title>Champak's Virtual Laboratory</title>
 
 <style>
-
 body{
 margin:0;
 font-family:Segoe UI, Arial;
@@ -29,7 +28,7 @@ min-height:100vh;
 }
 
 .sidebar{
-width:280px;
+width:300px;
 background:white;
 padding:20px;
 border-right:2px solid #ddd;
@@ -38,8 +37,8 @@ overflow-y:auto;
 
 .sidebar button{
 width:100%;
-padding:9px;
-margin-bottom:6px;
+padding:7px;
+margin-bottom:5px;
 border:none;
 background:#dbe7ff;
 font-weight:600;
@@ -58,17 +57,34 @@ padding:20px;
 text-align:center;
 }
 
-/* BEAKER */
+/* Realistic Glass Beaker */
 
 .beaker{
-width:230px;
-height:330px;
+width:260px;
+height:380px;
 margin:20px auto;
-border:5px solid #333;
-border-radius:0 0 60px 60px;
 position:relative;
+border-radius:0 0 100px 100px;
+border:6px solid #444;
+background:linear-gradient(to right,
+rgba(255,255,255,0.4),
+rgba(255,255,255,0.1),
+rgba(255,255,255,0.4));
 overflow:hidden;
-background:white;
+box-shadow:
+inset 0 0 15px rgba(255,255,255,0.6),
+0 5px 15px rgba(0,0,0,0.2);
+}
+
+.beaker::before{
+content:"";
+position:absolute;
+left:15px;
+top:0;
+width:25px;
+height:100%;
+background:rgba(255,255,255,0.25);
+border-radius:50px;
 }
 
 .liquid{
@@ -76,7 +92,6 @@ position:absolute;
 bottom:0;
 width:100%;
 height:0%;
-background:#ff4d6d;
 transition:height 1.5s, background 1s;
 }
 
@@ -89,8 +104,8 @@ opacity:0;
 transition:opacity 1s;
 }
 
-.reactionBox{
-margin-top:25px;
+.box{
+margin-top:20px;
 background:white;
 padding:15px;
 border-radius:8px;
@@ -103,7 +118,6 @@ font-size:14px;
 .container{flex-direction:column;}
 .sidebar{width:100%; border-right:none; border-bottom:2px solid #ddd;}
 }
-
 </style>
 </head>
 
@@ -117,12 +131,22 @@ Champak's Virtual Laboratory
 
 <div class="sidebar">
 
-<button onclick="runReaction('ckmb')">CK-MB (Immunoinhibition)</button>
-<button onclick="runReaction('ldh')">LDH (Pyruvate → Lactate)</button>
-<button onclick="runReaction('protein')">Total Protein (Biuret)</button>
-<button onclick="runReaction('albumin')">Albumin (BCG)</button>
-<button onclick="runReaction('calcium')">Calcium (OCPC)</button>
-<button onclick="runReaction('phosphorus')">Phosphorus (Molybdate UV)</button>
+<button onclick="runReaction('glucose')">Glucose</button>
+<button onclick="runReaction('urea')">Urea</button>
+<button onclick="runReaction('creatinine')">Creatinine</button>
+<button onclick="runReaction('cholesterol')">Cholesterol</button>
+<button onclick="runReaction('bilirubin')">Bilirubin</button>
+<button onclick="runReaction('alt')">ALT</button>
+<button onclick="runReaction('ast')">AST</button>
+<button onclick="runReaction('alp')">ALP</button>
+<button onclick="runReaction('uric')">Uric Acid</button>
+<button onclick="runReaction('amylase')">Serum Amylase</button>
+<button onclick="runReaction('ckmb')">CK-MB</button>
+<button onclick="runReaction('ldh')">LDH</button>
+<button onclick="runReaction('protein')">Total Protein</button>
+<button onclick="runReaction('albumin')">Albumin</button>
+<button onclick="runReaction('calcium')">Calcium</button>
+<button onclick="runReaction('phosphorus')">Phosphorus</button>
 
 </div>
 
@@ -132,7 +156,7 @@ Champak's Virtual Laboratory
 <div class="liquid" id="liquid"></div>
 </div>
 
-<div class="reactionBox" id="reactionBox">
+<div class="box" id="reactionBox">
 Select a parameter to visualize reaction.
 </div>
 
@@ -155,92 +179,117 @@ document.getElementById("beaker").appendChild(m);
 setTimeout(()=>{m.style.opacity=1;},200);
 }
 
+function showReaction(color,substrate,product,equation,colorName){
+let liquid=document.getElementById("liquid");
+liquid.style.background=color;
+liquid.style.height="70%";
+addMolecule(substrate,35,80);
+setTimeout(()=>{addMolecule(product,30,40);},2000);
+document.getElementById("reactionBox").innerHTML=
+equation+"<br><b>Real Laboratory Color:</b> "+colorName;
+}
+
 function runReaction(type){
 
 clearBeaker();
-let liquid=document.getElementById("liquid");
-let box=document.getElementById("reactionBox");
 
 setTimeout(()=>{
 
-/* CK-MB */
-if(type==="ckmb"){
-liquid.style.background="#ff6666";
-liquid.style.height="70%";
-addMolecule("Creatine Phosphate",25,80);
-setTimeout(()=>{addMolecule("Creatine + ATP",30,45);},2000);
-box.innerHTML=`
-<h3>CK-MB – Immunoinhibition Method</h3>
-Creatine phosphate + ADP → Creatine + ATP<br>
-ATP used in coupled reaction → NADPH formation<br>
-Measured at 340 nm
-`;
-}
+if(type==="glucose")
+showReaction("linear-gradient(to top,#ff4d6d,#ff99aa)",
+"Glucose","Quinoneimine",
+"Glucose + O₂ → H₂O₂ → Quinoneimine",
+"Pink");
 
-/* LDH */
-if(type==="ldh"){
-liquid.style.background="#ccffcc";
-liquid.style.height="70%";
-addMolecule("Pyruvate",30,80);
-setTimeout(()=>{addMolecule("Lactate",30,45);},2000);
-box.innerHTML=`
-<h3>Lactate Dehydrogenase (LDH)</h3>
-Pyruvate + NADH + H⁺ → Lactate + NAD⁺<br>
-Decrease in NADH absorbance at 340 nm
-`;
-}
+if(type==="urea")
+showReaction("linear-gradient(to top,#4da6ff,#a8d0ff)",
+"Urea","Indophenol Blue",
+"Urea → NH₃ → Indophenol",
+"Blue");
 
-/* TOTAL PROTEIN */
-if(type==="protein"){
-liquid.style.background="#8e44ad";
-liquid.style.height="70%";
-addMolecule("Protein",35,80);
-setTimeout(()=>{addMolecule("Cu²⁺ Complex",30,45);},2000);
-box.innerHTML=`
-<h3>Total Protein – Biuret Method</h3>
-Protein + Cu²⁺ (alkaline) → Violet complex<br>
-Measured at 540 nm
-`;
-}
+if(type==="creatinine")
+showReaction("linear-gradient(to top,#ff9933,#ffd1a3)",
+"Creatinine","Orange Complex",
+"Creatinine + Picrate → Complex",
+"Orange-Red");
 
-/* ALBUMIN */
-if(type==="albumin"){
-liquid.style.background="#2ecc71";
-liquid.style.height="70%";
-addMolecule("Albumin",35,80);
-setTimeout(()=>{addMolecule("BCG Complex",30,45);},2000);
-box.innerHTML=`
-<h3>Albumin – BCG Method</h3>
-Albumin + Bromocresol Green → Green complex<br>
-Measured at 630 nm
-`;
-}
+if(type==="cholesterol")
+showReaction("linear-gradient(to top,#ff6666,#ff9999)",
+"Cholesterol","Red Quinoneimine",
+"Cholesterol → H₂O₂ → Quinoneimine",
+"Red");
 
-/* CALCIUM */
-if(type==="calcium"){
-liquid.style.background="#e74c3c";
-liquid.style.height="70%";
-addMolecule("Ca²⁺",35,80);
-setTimeout(()=>{addMolecule("OCPC Complex",30,45);},2000);
-box.innerHTML=`
-<h3>Calcium – OCPC Method</h3>
-Ca²⁺ + o-Cresolphthalein Complexone → Purple complex<br>
-Measured at 570 nm
-`;
-}
+if(type==="bilirubin")
+showReaction("linear-gradient(to top,#ffcc00,#fff0b3)",
+"Bilirubin","Azobilirubin",
+"Bilirubin + Diazo → Azobilirubin",
+"Pink");
 
-/* PHOSPHORUS */
-if(type==="phosphorus"){
-liquid.style.background="#3498db";
-liquid.style.height="70%";
-addMolecule("Phosphate",35,80);
-setTimeout(()=>{addMolecule("Phosphomolybdate",30,45);},2000);
-box.innerHTML=`
-<h3>Phosphorus – Molybdate UV Method</h3>
-Inorganic phosphate + Ammonium molybdate → Phosphomolybdate complex<br>
-Measured at 340 nm
-`;
-}
+if(type==="alt")
+showReaction("linear-gradient(to top,#99ffcc,#ccffdd)",
+"Alanine","Pyruvate",
+"Alanine + αKG → Pyruvate + Glutamate",
+"Colorless / NADH monitored");
+
+if(type==="ast")
+showReaction("linear-gradient(to top,#ccff99,#e6ffcc)",
+"Aspartate","Oxaloacetate",
+"Aspartate + αKG → Oxaloacetate + Glutamate",
+"Colorless / NADH monitored");
+
+if(type==="alp")
+showReaction("linear-gradient(to top,#ffff66,#ffffcc)",
+"pNPP","p-Nitrophenol",
+"pNPP → p-Nitrophenol",
+"Yellow");
+
+if(type==="uric")
+showReaction("linear-gradient(to top,#ff9999,#ffcccc)",
+"Uric Acid","Allantoin",
+"Uric Acid → Allantoin + H₂O₂",
+"Red");
+
+if(type==="amylase")
+showReaction("linear-gradient(to top,#fff176,#fff9c4)",
+"CNPG₃","CNP",
+"CNPG₃ → 2-Chloro-4-Nitrophenol",
+"Yellow");
+
+if(type==="ckmb")
+showReaction("linear-gradient(to top,#ff6666,#ffcccc)",
+"Creatine-P","ATP",
+"Creatine-P + ADP → Creatine + ATP",
+"Measured at 340 nm");
+
+if(type==="ldh")
+showReaction("linear-gradient(to top,#ccffcc,#eaffea)",
+"Pyruvate","Lactate",
+"Pyruvate + NADH → Lactate + NAD⁺",
+"Decrease in NADH (340 nm)");
+
+if(type==="protein")
+showReaction("linear-gradient(to top,#8e44ad,#c39bd3)",
+"Protein","Violet Complex",
+"Protein + Cu²⁺ → Violet Complex",
+"Violet");
+
+if(type==="albumin")
+showReaction("linear-gradient(to top,#2ecc71,#a9dfbf)",
+"Albumin","Green Complex",
+"Albumin + BCG → Complex",
+"Green");
+
+if(type==="calcium")
+showReaction("linear-gradient(to top,#e74c3c,#f5b7b1)",
+"Ca²⁺","Purple Complex",
+"Ca²⁺ + OCPC → Complex",
+"Purple");
+
+if(type==="phosphorus")
+showReaction("linear-gradient(to top,#3498db,#aed6f1)",
+"Phosphate","Phosphomolybdate",
+"Phosphate + Molybdate → Complex",
+"Blue");
 
 },300);
 }
