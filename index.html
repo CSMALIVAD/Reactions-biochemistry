@@ -8,113 +8,100 @@
 <style>
 
 body{
-    margin:0;
-    font-family:Segoe UI, Arial;
-    background:#eef3f9;
+margin:0;
+font-family:Segoe UI, Arial;
+background:#eef3f9;
 }
 
 header{
-    background:#001f4d;
-    color:white;
-    text-align:center;
-    padding:18px;
-    font-size:22px;
-    font-weight:600;
+background:#001f4d;
+color:white;
+text-align:center;
+padding:18px;
+font-size:22px;
+font-weight:600;
 }
 
 .container{
-    display:flex;
-    flex-wrap:wrap;
-    min-height:100vh;
+display:flex;
+flex-wrap:wrap;
+min-height:100vh;
 }
 
 .sidebar{
-    width:260px;
-    background:white;
-    padding:20px;
-    border-right:2px solid #ddd;
+width:280px;
+background:white;
+padding:20px;
+border-right:2px solid #ddd;
+overflow-y:auto;
 }
 
 .sidebar button{
-    width:100%;
-    padding:12px;
-    margin-bottom:8px;
-    border:none;
-    background:#dbe7ff;
-    font-weight:600;
-    border-radius:6px;
-    cursor:pointer;
+width:100%;
+padding:9px;
+margin-bottom:6px;
+border:none;
+background:#dbe7ff;
+font-weight:600;
+border-radius:6px;
+cursor:pointer;
+font-size:13px;
 }
 
 .sidebar button:hover{
-    background:#bcd3ff;
+background:#bcd3ff;
 }
 
 .main{
-    flex:1;
-    padding:20px;
-    text-align:center;
+flex:1;
+padding:20px;
+text-align:center;
 }
 
+/* BEAKER */
+
 .beaker{
-    width:220px;
-    height:320px;
-    margin:20px auto;
-    border:5px solid #333;
-    border-radius:0 0 60px 60px;
-    position:relative;
-    overflow:hidden;
-    background:white;
+width:230px;
+height:330px;
+margin:20px auto;
+border:5px solid #333;
+border-radius:0 0 60px 60px;
+position:relative;
+overflow:hidden;
+background:white;
 }
 
 .liquid{
-    position:absolute;
-    bottom:0;
-    width:100%;
-    height:70%;
-    background:#ff4d6d;
-    transition:background 0.5s;
+position:absolute;
+bottom:0;
+width:100%;
+height:0%;
+background:#ff4d6d;
+transition:height 1.5s, background 1s;
 }
 
-/* Molecules INSIDE beaker */
 .molecule{
-    position:absolute;
-    color:white;
-    font-weight:bold;
-    font-size:14px;
-    animation:float 3s infinite ease-in-out;
+position:absolute;
+color:white;
+font-weight:bold;
+font-size:13px;
+opacity:0;
+transition:opacity 1s;
 }
 
-@keyframes float{
-    0%{transform:translateY(0);}
-    50%{transform:translateY(-10px);}
-    100%{transform:translateY(0);}
-}
-
-.spectro{
-    margin-top:25px;
-    background:white;
-    padding:15px;
-    border-radius:8px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.1);
-    text-align:left;
-}
-
-.meter{
-    font-size:22px;
-    font-weight:bold;
-    color:#003366;
+.reactionBox{
+margin-top:25px;
+background:white;
+padding:15px;
+border-radius:8px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+text-align:left;
+font-size:14px;
 }
 
 @media(max-width:768px){
-    .container{
-        flex-direction:column;
-    }
-    .sidebar{
-        width:100%;
-        border-right:none;
-        border-bottom:2px solid #ddd;
-    }
+.container{flex-direction:column;}
+.sidebar{width:100%; border-right:none; border-bottom:2px solid #ddd;}
 }
 
 </style>
@@ -129,9 +116,14 @@ Champak's Virtual Laboratory
 <div class="container">
 
 <div class="sidebar">
-<button onclick="selectTest('glucose')">Glucose (GOD-POD)</button>
-<button onclick="selectTest('urea')">Urea (Urease)</button>
-<button onclick="selectTest('bilirubin')">Bilirubin</button>
+
+<button onclick="runReaction('ckmb')">CK-MB (Immunoinhibition)</button>
+<button onclick="runReaction('ldh')">LDH (Pyruvate → Lactate)</button>
+<button onclick="runReaction('protein')">Total Protein (Biuret)</button>
+<button onclick="runReaction('albumin')">Albumin (BCG)</button>
+<button onclick="runReaction('calcium')">Calcium (OCPC)</button>
+<button onclick="runReaction('phosphorus')">Phosphorus (Molybdate UV)</button>
+
 </div>
 
 <div class="main">
@@ -140,11 +132,8 @@ Champak's Virtual Laboratory
 <div class="liquid" id="liquid"></div>
 </div>
 
-<div class="spectro">
-<h3>Spectrophotometer Simulation</h3>
-<p><b>Wavelength:</b> <span id="wavelength">505</span> nm</p>
-<p class="meter">Absorbance (A): <span id="absorbance">0.500</span></p>
-<p><b>Beer–Lambert Law:</b> A = ε × c × l</p>
+<div class="reactionBox" id="reactionBox">
+Select a parameter to visualize reaction.
 </div>
 
 </div>
@@ -152,57 +141,109 @@ Champak's Virtual Laboratory
 
 <script>
 
-let epsilon=0.005;
-
-function clearMolecules(){
-    const beaker=document.getElementById("beaker");
-    beaker.innerHTML='<div class="liquid" id="liquid"></div>';
+function clearBeaker(){
+document.getElementById("beaker").innerHTML='<div class="liquid" id="liquid"></div>';
 }
 
 function addMolecule(text,left,top){
-    let m=document.createElement("div");
-    m.className="molecule";
-    m.style.left=left+"%";
-    m.style.top=top+"%";
-    m.innerText=text;
-    document.getElementById("beaker").appendChild(m);
+let m=document.createElement("div");
+m.className="molecule";
+m.style.left=left+"%";
+m.style.top=top+"%";
+m.innerText=text;
+document.getElementById("beaker").appendChild(m);
+setTimeout(()=>{m.style.opacity=1;},200);
 }
 
-function selectTest(type){
+function runReaction(type){
 
-    clearMolecules();
+clearBeaker();
+let liquid=document.getElementById("liquid");
+let box=document.getElementById("reactionBox");
 
-    const liquid=document.getElementById("liquid");
+setTimeout(()=>{
 
-    if(type==="glucose"){
-        epsilon=0.005;
-        liquid.style.background="#ff4d6d";
-        document.getElementById("wavelength").innerText="505";
-        addMolecule("Glucose",30,70);
-        addMolecule("O₂",60,75);
-        addMolecule("Quinoneimine",35,40);
-    }
-
-    if(type==="urea"){
-        epsilon=0.003;
-        liquid.style.background="#4da6ff";
-        document.getElementById("wavelength").innerText="578";
-        addMolecule("Urea",40,70);
-        addMolecule("CO₂",50,40);
-    }
-
-    if(type==="bilirubin"){
-        epsilon=0.004;
-        liquid.style.background="#ffcc00";
-        document.getElementById("wavelength").innerText="546";
-        addMolecule("Bilirubin",35,70);
-        addMolecule("Azobilirubin",30,40);
-    }
-
-    document.getElementById("absorbance").innerText=(epsilon*100).toFixed(3);
+/* CK-MB */
+if(type==="ckmb"){
+liquid.style.background="#ff6666";
+liquid.style.height="70%";
+addMolecule("Creatine Phosphate",25,80);
+setTimeout(()=>{addMolecule("Creatine + ATP",30,45);},2000);
+box.innerHTML=`
+<h3>CK-MB – Immunoinhibition Method</h3>
+Creatine phosphate + ADP → Creatine + ATP<br>
+ATP used in coupled reaction → NADPH formation<br>
+Measured at 340 nm
+`;
 }
 
-selectTest("glucose");
+/* LDH */
+if(type==="ldh"){
+liquid.style.background="#ccffcc";
+liquid.style.height="70%";
+addMolecule("Pyruvate",30,80);
+setTimeout(()=>{addMolecule("Lactate",30,45);},2000);
+box.innerHTML=`
+<h3>Lactate Dehydrogenase (LDH)</h3>
+Pyruvate + NADH + H⁺ → Lactate + NAD⁺<br>
+Decrease in NADH absorbance at 340 nm
+`;
+}
+
+/* TOTAL PROTEIN */
+if(type==="protein"){
+liquid.style.background="#8e44ad";
+liquid.style.height="70%";
+addMolecule("Protein",35,80);
+setTimeout(()=>{addMolecule("Cu²⁺ Complex",30,45);},2000);
+box.innerHTML=`
+<h3>Total Protein – Biuret Method</h3>
+Protein + Cu²⁺ (alkaline) → Violet complex<br>
+Measured at 540 nm
+`;
+}
+
+/* ALBUMIN */
+if(type==="albumin"){
+liquid.style.background="#2ecc71";
+liquid.style.height="70%";
+addMolecule("Albumin",35,80);
+setTimeout(()=>{addMolecule("BCG Complex",30,45);},2000);
+box.innerHTML=`
+<h3>Albumin – BCG Method</h3>
+Albumin + Bromocresol Green → Green complex<br>
+Measured at 630 nm
+`;
+}
+
+/* CALCIUM */
+if(type==="calcium"){
+liquid.style.background="#e74c3c";
+liquid.style.height="70%";
+addMolecule("Ca²⁺",35,80);
+setTimeout(()=>{addMolecule("OCPC Complex",30,45);},2000);
+box.innerHTML=`
+<h3>Calcium – OCPC Method</h3>
+Ca²⁺ + o-Cresolphthalein Complexone → Purple complex<br>
+Measured at 570 nm
+`;
+}
+
+/* PHOSPHORUS */
+if(type==="phosphorus"){
+liquid.style.background="#3498db";
+liquid.style.height="70%";
+addMolecule("Phosphate",35,80);
+setTimeout(()=>{addMolecule("Phosphomolybdate",30,45);},2000);
+box.innerHTML=`
+<h3>Phosphorus – Molybdate UV Method</h3>
+Inorganic phosphate + Ammonium molybdate → Phosphomolybdate complex<br>
+Measured at 340 nm
+`;
+}
+
+},300);
+}
 
 </script>
 
