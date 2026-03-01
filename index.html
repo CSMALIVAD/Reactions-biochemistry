@@ -3,110 +3,214 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Interactive Biochemistry Reaction Lab</title>
+<title>Champak's Virtual Laboratory</title>
 
 <style>
 
 body{
-    margin:0;
-    font-family: "Segoe UI", Arial;
-    background:#f4f7fb;
+margin:0;
+font-family:Segoe UI, Arial;
+background:#eef3f9;
 }
 
-/* HEADER */
 header{
-    background:#002b5c;
-    color:white;
-    text-align:center;
-    padding:15px;
-    font-size:20px;
-    font-weight:600;
+background:#001f4d;
+color:white;
+text-align:center;
+padding:18px;
+font-size:22px;
+font-weight:600;
 }
 
-/* MAIN LAYOUT */
+/* LAYOUT */
 .container{
-    display:flex;
-    min-height:100vh;
+display:flex;
+flex-wrap:wrap;
+min-height:100vh;
 }
 
-/* SIDEBAR */
 .sidebar{
-    width:280px;
-    background:white;
-    padding:20px;
-    border-right:2px solid #ddd;
-    box-shadow:2px 0 5px rgba(0,0,0,0.05);
-}
-
-.sidebar h3{
-    margin-top:0;
+width:260px;
+background:white;
+padding:20px;
+border-right:2px solid #ddd;
 }
 
 .sidebar button{
-    width:100%;
-    padding:12px;
-    margin-bottom:10px;
-    border:none;
-    background:#e6efff;
-    font-weight:600;
-    cursor:pointer;
-    border-radius:6px;
-    transition:0.3s;
+width:100%;
+padding:12px;
+margin-bottom:8px;
+border:none;
+background:#dbe7ff;
+font-weight:600;
+border-radius:6px;
+cursor:pointer;
 }
 
-.sidebar button:hover{
-    background:#c8dcff;
-}
-
-/* MAIN AREA */
 .main{
-    flex:1;
-    padding:20px;
-    text-align:center;
+flex:1;
+padding:20px;
+text-align:center;
 }
 
 /* BEAKER */
 .beaker{
-    width:200px;
-    height:300px;
-    margin:20px auto;
-    border:5px solid #444;
-    border-radius:0 0 60px 60px;
-    position:relative;
-    overflow:hidden;
-    background:rgba(255,255,255,0.9);
+width:200px;
+height:300px;
+margin:20px auto;
+border:5px solid #333;
+border-radius:0 0 60px 60px;
+position:relative;
+overflow:hidden;
+background:white;
 }
 
 .liquid{
-    position:absolute;
-    bottom:0;
-    width:100%;
-    height:0%;
-    background:transparent;
-    transition: height 2s, background 2s;
+position:absolute;
+bottom:0;
+width:100%;
+height:70%;
+background:#ff4d6d;
+transition:background 1s;
 }
 
-/* MOLECULE */
-.molecule{
-    position:absolute;
-    font-size:14px;
-    font-weight:bold;
-    animation: float 3s infinite ease-in-out;
+/* SLIDER */
+.control{
+margin-top:20px;
 }
 
-@keyframes float{
-    0%{transform:translateY(0px);}
-    50%{transform:translateY(-15px);}
-    100%{transform:translateY(0px);}
+/* SPECTROPHOTOMETER */
+.spectro{
+margin-top:25px;
+background:white;
+padding:15px;
+border-radius:8px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+text-align:left;
 }
 
-/* INFO CARD */
-.info{
-    background:white;
-    padding:15px;
-    border-radius:8px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.1);
-    text-align:left;
+.meter{
+font-size:20px;
+font-weight:bold;
+color:#003366;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+.container{
+flex-direction:column;
+}
+.sidebar{
+width:100%;
+border-right:none;
+border-bottom:2px solid #ddd;
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+Champak's Virtual Laboratory
+</header>
+
+<div class="container">
+
+<div class="sidebar">
+<button onclick="selectTest('glucose')">Glucose (GOD-POD)</button>
+<button onclick="selectTest('urea')">Urea (Urease)</button>
+<button onclick="selectTest('bilirubin')">Bilirubin</button>
+</div>
+
+<div class="main">
+
+<div class="beaker">
+<div class="liquid" id="liquid"></div>
+</div>
+
+<div class="control">
+<label><b>Concentration (mg/dL)</b></label><br>
+<input type="range" min="0" max="300" value="100" id="concSlider" oninput="updateAbsorbance()">
+<p id="concValue">100 mg/dL</p>
+</div>
+
+<div class="spectro">
+<h3>Spectrophotometer Simulation</h3>
+<p><b>Wavelength:</b> <span id="wavelength">505</span> nm</p>
+<p class="meter">Absorbance (A): <span id="absorbance">0.500</span></p>
+<p><b>Beer–Lambert Law:</b> A = ε × c × l</p>
+<p>ε (Molar absorptivity) = <span id="epsilon">0.005</span></p>
+<p>Path length (l) = 1 cm</p>
+</div>
+
+</div>
+</div>
+
+<script>
+
+let currentTest="glucose";
+let epsilon=0.005;
+
+function selectTest(type){
+
+currentTest=type;
+
+if(type==="glucose"){
+epsilon=0.005;
+document.getElementById("liquid").style.background="#ff4d6d";
+document.getElementById("wavelength").innerText="505";
+}
+
+if(type==="urea"){
+epsilon=0.003;
+document.getElementById("liquid").style.background="#4da6ff";
+document.getElementById("wavelength").innerText="578";
+}
+
+if(type==="bilirubin"){
+epsilon=0.004;
+document.getElementById("liquid").style.background="#ffcc00";
+document.getElementById("wavelength").innerText="546";
+}
+
+document.getElementById("epsilon").innerText=epsilon;
+updateAbsorbance();
+}
+
+function updateAbsorbance(){
+
+let conc=document.getElementById("concSlider").value;
+document.getElementById("concValue").innerText=conc+" mg/dL";
+
+let absorbance=(epsilon*conc*1).toFixed(3);
+document.getElementById("absorbance").innerText=absorbance;
+
+/* Color intensity proportional to absorbance */
+let intensity=Math.min(1,absorbance/2);
+let liquid=document.getElementById("liquid");
+
+if(currentTest==="glucose"){
+liquid.style.background=`rgba(255,77,109,${0.3+intensity})`;
+}
+
+if(currentTest==="urea"){
+liquid.style.background=`rgba(77,166,255,${0.3+intensity})`;
+}
+
+if(currentTest==="bilirubin"){
+liquid.style.background=`rgba(255,204,0,${0.3+intensity})`;
+}
+
+}
+
+selectTest("glucose");
+
+</script>
+
+</body>
+</html>    text-align:left;
     margin-top:20px;
 }
 
